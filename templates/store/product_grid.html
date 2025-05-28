@@ -1,0 +1,47 @@
+<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+    {% for product in products %}
+    <div class="bg-white rounded-xl border border-gray-100 overflow-hidden max-w-sm mx-auto transition-all duration-300 group relative">
+        <!-- Product Image with Overlay -->
+        <a href="{% url 'product_detail' product.id %}" class="block relative overflow-hidden">
+            <img 
+                src="{{ product.images.first.image.url }}" 
+                alt="{{ product.name }}" 
+                class="w-full transition-transform duration-500 group-hover:scale-105"
+            >
+            
+            
+            {% if product.category %}
+            <div class="absolute top-2 left-2 bg-gray-900 text-white text-xs font-medium px-2 py-1 rounded">
+                {{ product.category.name }}
+            </div>
+            {% endif %}
+        </a>
+        
+        <!-- Product Info -->
+        <div class="p-4">
+            <a href="{% url 'product_detail' product.id %}" class="inline">
+                <h2 class="text-lg font-semibold text-gray-900 truncate hover:text-gray-700 transition-colors">{{ product.name }}</h2>
+            </a>
+            <p class="text-lg font-bold text-green-600">{{ product.price }}৳</p>
+            <p class="text-gray-600 mt-2 text-sm line-clamp-2 h-10">{{ product.short_description }}</p>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-span-full flex flex-col items-center justify-center py-12 text-center">
+        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-package-search text-gray-300 mb-4"><path d="M21 10V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l2-1.14"/><path d="m7.5 4.27 9 5.15"/><polyline points="3.29 7 12 12 20.71 7"/><line x1="12" y1="22" x2="12" y2="12"/><circle cx="18.5" cy="15.5" r="2.5"/><path d="M20.27 17.27 22 19"/></svg>
+        <h3 class="text-lg font-medium text-gray-900">No products found</h3>
+        <p class="text-gray-500 mt-1">Try adjusting your search or filter criteria</p>
+        <button class="mt-4 px-4 py-2 bg-gray-900 text-white rounded-md hover:bg-gray-800 transition-colors" onclick="window.location.href='/store/'">View All Products</button>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Add the necessary styles for line-clamp if not already included -->
+<style>
+    .line-clamp-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+</style>

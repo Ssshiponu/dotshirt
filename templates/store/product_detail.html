@@ -1,0 +1,179 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ product.name }} | Dotshirt{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4">
+    <!-- Product Detail -->
+    <div class="flex flex-col md:flex-row -mx-4">
+        <!-- Product Images -->
+        <div class="md:flex-1 px-4 mb-6 md:mb-0" >
+            <div class="w-full h-auto rounded-lg border border-gray-200 overflow-hidden bg-gray-100 mb-4 flex items-center justify-center">
+                <img class="w-full rounded-lg" 
+                     src="{{ product.images.first.image.url }}" 
+                     alt="{{ product.name }}"
+                     id="primaryImage">
+            </div>
+            {% if product.images.count > 1 %}
+            <div class="flex -mx-2 mb-4">
+                {% for image in product.images.all %}
+                <div class="w-32 h-32 px-2">
+                    <button id="thumbnail" class="focus:outline-none w-full overflow-hidden rounded-lg border border-gray-200  {% if forloop.first %}ring-2 ring-gray-800{% endif %}">
+                        <img class="w-full h-full object-contain"  
+                             src="{{ image.image.url }}" 
+                             alt="{{ product.name }} - Image {{ forloop.counter }}"
+                             >
+                    </button>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Product Info -->
+        <div class="md:flex-1 px-4">
+            <h2 class="text-2xl font-bold text-gray-900 mb-2">{{ product.name }}</h2>
+            {% if product.category %}
+            <p class="text-sm text-gray-500 mb-4">
+                Category: <a href="{% url 'category' product.category.id %}" class="text-gray-900 hover:underline">{{ product.category.name }}</a>
+            </p>
+            {% endif %}
+
+            <div class="mb-4">
+                <p class="text-gray-600">{{ product.short_description|safe }}</p>
+            </div>
+
+            <!-- Price -->
+            <div class="flex mb-4">
+                <div class="mr-4 text-xl">
+                    <span class="font-bold text-gray-700">Price:</span>
+                        <span class="text-green-600 font-semibold">{{ product.price }}৳</span>
+                </div>
+            </div>
+            
+            
+            <div class="mb-4">
+                <div x-data="{ selectedSize: 'S' }" class="mt-2">
+                    <span class="font-bold text-gray-700">Select Size:</span>
+                    <div class="flex items-center mt-2" id="size-options">
+                        <template x-for="(size, index) in ['S', 'M', 'L', 'XL']" :key="index">
+                            <button
+                            type="button"
+                            class="size-option bg-white text-gray-800 py-1 px-3 rounded-md border border-gray-300 mr-2 hover:bg-gray-100 focus:outline-none focus:ring-1 focus:ring-gray-800 transition"
+                            :class="{ 'bg-gray-100 border-gray-800 text-gray-800': selectedSize === size }"
+                            @click="selectedSize = size; document.getElementById('selected-size').value = size"
+                            x-text="size"
+                            :aria-pressed="selectedSize === size"
+                            aria-label=`Select size ${size}`
+                            ></button>
+                        </template>
+                        <input
+                            type="hidden"
+                            name="selected_size"
+                            id="selected-size"
+                            x-model="selectedSize"
+                        >
+                    </div>
+                </div>
+            </div>
+            <div class="mb-6">
+                <label for="quantity" class="font-bold text-gray-700 mb-2 block">Quantity:</label>
+                <div class="flex items-center mt-1" x-data="{ quantity: 1 }">
+                    <button type="button" @click="quantity > 1 ? quantity-- : null" id="decrement-quantity" class="bg-gray-200 text-gray-800 p-2 rounded-lg hover:bg-gray-300">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-minus"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    </button>
+                    <input type="number" id="quantity" name="quantity" min="1" x-model="quantity" class="w-16 text-center border border-gray-300 rounded-lg mx-2 py-1">
+                    <button type="button" @click="quantity++" id="increment-quantity" class="bg-gray-200 text-gray-800 p-2 rounded-lg hover:bg-gray-300">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus"><line x1="5" y1="12" x2="19" y2="12"/><line x1="12" y1="5" x2="12" y2="19"/></svg>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="w-full">
+                <div class="flex flex-row mb-6 space-x-2">
+                    <form hx-post="{% url 'add_to_cart' product.id %}" hx-target="#cart-message" hx-swap="innerHTML" class="flex-1 lg:flex-none">
+                        {% csrf_token %}
+                        <input type="hidden" name="size" id="form-size-input">
+                        <input type="hidden" name="quantity" id="form-quantity-input">
+                        <button type="submit"
+                            class="w-full bg-gray-900 text-white py-2 px-4 rounded-md hover:bg-gray-800 transition-colors duration-300 flex items-center justify-center"
+                            onclick="document.getElementById('form-size-input').value = document.getElementById('selected-size').value; document.getElementById('form-quantity-input').value = document.getElementById('quantity').value;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+                            Add to Cart
+                        </button>
+                    </form>
+                    <button type="button" class="bg-green-600 text-white p-2 rounded-lg hover:bg-green-700 transition-colors duration-300 flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 fill-white" viewBox="0 0 448 512"><path d="M380.9 97.1C339 55.1 283.2 32 223.9 32c-122.4 0-222 99.6-222 222 0 39.1 10.2 77.3 29.6 111L0 480l117.7-30.9c32.4 17.7 68.9 27 106.1 27h.1c122.3 0 224.1-99.6 224.1-222 0-59.3-25.2-115-67.1-157zm-157 341.6c-33.2 0-65.7-8.9-94-25.7l-6.7-4-69.8 18.3L72 359.2l-4.4-7c-18.5-29.4-28.2-63.3-28.2-98.2 0-101.7 82.8-184.5 184.6-184.5 49.3 0 95.6 19.2 130.4 54.1 34.8 34.9 56.2 81.2 56.1 130.5 0 101.8-84.9 184.6-186.6 184.6zm101.2-138.2c-5.5-2.8-32.8-16.2-37.9-18-5.1-1.9-8.8-2.8-12.5 2.8-3.7 5.6-14.3 18-17.6 21.8-3.2 3.7-6.5 4.2-12 1.4-32.6-16.3-54-29.1-75.5-66-5.7-9.8 5.7-9.1 16.3-30.3 1.8-3.7 .9-6.9-.5-9.7-1.4-2.8-12.5-30.1-17.1-41.2-4.5-10.8-9.1-9.3-12.5-9.5-3.2-.2-6.9-.2-10.6-.2-3.7 0-9.7 1.4-14.8 6.9-5.1 5.6-19.4 19-19.4 46.3 0 27.3 19.9 53.7 22.6 57.4 2.8 3.7 39.1 59.7 94.8 83.8 35.2 15.2 49 16.5 66.6 13.9 10.7-1.6 32.8-13.4 37.4-26.4 4.6-13 4.6-24.1 3.2-26.4-1.3-2.5-5-3.9-10.5-6.6z"/></svg>
+                    </button>
+                    <button type="button" class="bg-green-600 text-white p-2 rounded-lg hover:bg-green-700 transition-colors duration-300 flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 fill-white" viewBox="0 0 512 512"><path d="M164.9 24.6c-7.7-18.6-28-28.5-47.4-23.2l-88 24C12.1 30.2 0 46 0 64C0 311.4 200.6 512 448 512c18 0 33.8-12.1 38.6-29.5l24-88c5.3-19.4-4.6-39.7-23.2-47.4l-96-40c-16.3-6.8-35.2-2.1-46.3 11.6L304.7 368C234.3 334.7 177.3 277.7 144 207.3L193.3 167c13.7-11.2 18.4-30 11.6-46.3l-40-96z"/></svg>
+                    </button>
+
+                </div>
+            </div>
+            
+            <!-- Cart Message Container -->
+            <div id="cart-message"></div>
+            
+            <div class="border-t border-gray-200 pt-4">
+                <h3 class="text-lg font-semibold text-gray-900 mb-2">Description</h3>
+                <p class="text-gray-600">{{ product.description|safe }}</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Related Products -->
+    {% if related_products %}
+    <div class="mt-16">
+        <h2 class="text-2xl font-bold text-gray-900 mb-6">You may also like</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {% for related in related_products %}
+            <div class="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden transition-all duration-300 hover:shadow-md">
+                <a href="{% url 'product_detail' related.id %}">
+                    <img src="{{ related.images.first.image.url }}" alt="{{ related.name }}" class="w-full h-48 object-cover">
+                </a>
+                <div class="p-4">
+                    <h3 class="text-lg font-semibold text-gray-900">{{ related.name }}</h3>
+                    <p class="text-gray-900 font-bold mt-2">{{ related.price }}৳</p>
+                    <button 
+                        class="w-full mt-3 bg-gray-900 text-white py-2 rounded-md hover:bg-gray-800 transition-colors duration-300"
+                        hx-post="{% url 'add_to_cart' related.id %}"
+                        hx-target="#cart-message"
+                        hx-swap="innerHTML"
+                    >
+                        Add to Cart
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        
+        // Product image gallery
+        const thumbnails = document.querySelectorAll('#thumbnail');
+        const mainImage = document.querySelector('#primaryImage');
+        
+        thumbnails.forEach(thumbnail => {
+            thumbnail.addEventListener('click', function() {
+                // Remove highlight from all thumbnails
+                thumbnails.forEach(t => t.classList.remove('ring-2', 'ring-gray-800'));
+                
+                // Add highlight to clicked thumbnail
+                this.classList.add('ring-2', 'ring-gray-800');
+                
+                // Update main image
+                mainImage.src = this.querySelector('img').src;
+            });
+        });
+    });
+</script>
+{% endblock %}

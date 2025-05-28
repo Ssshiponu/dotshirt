@@ -1,0 +1,38 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Dotshirt{% endblock %}</title>
+    <script src="{% static 'js/tailwindcss.js' %}"></script>
+    <script src="{% static 'js/alpine.js' %}" defer></script>
+    <script src="{% static 'js/htmx.js' %}"></script>
+    <style>
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    {% include 'header.html' %}
+    <div class="py-4 md:py-8 lg:py-12">
+        {% block content %}{% endblock %}
+    </div>
+    {% include 'footer.html' %}
+    
+    {% block scripts %}{% endblock %}
+</body>
+</html>

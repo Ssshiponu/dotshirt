@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Order History | Dotshirt{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-5xl mx-auto">
+        <h1 class="text-2xl md:text-3xl font-bold mb-6">Order History</h1>
+        
+        {% if messages %}
+        <div class="mb-6">
+            {% for message in messages %}
+            <div class="p-4 {% if message.tags == 'success' %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %} rounded-lg">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        <div class="flex flex-col md:flex-row gap-6">
+            <!-- Sidebar -->
+            <div class="md:w-1/4">
+                <div class="bg-white rounded-xl border border-gray-200 p-6">
+                    <nav class="space-y-2">
+                        <a href="{% url 'profile' %}" class="block w-full py-2 px-3 hover:bg-gray-100 text-gray-800 rounded-lg transition-colors">Account Dashboard</a>
+                        <a href="{% url 'edit_profile' %}" class="block w-full py-2 px-3 hover:bg-gray-100 text-gray-800 rounded-lg transition-colors">Edit Profile</a>
+                        <a href="{% url 'address_book' %}" class="block w-full py-2 px-3 hover:bg-gray-100 text-gray-800 rounded-lg transition-colors">Address Book</a>
+                        <a href="{% url 'order_history' %}" class="block w-full py-2 px-3 bg-gray-100 text-gray-900 rounded-lg">Order History</a>
+                        <a href="{% url 'change_password' %}" class="block w-full py-2 px-3 hover:bg-gray-100 text-gray-800 rounded-lg transition-colors">Change Password</a>
+                        <a href="{% url 'logout' %}" class="block w-full py-2 px-3 hover:bg-gray-100 text-gray-800 rounded-lg transition-colors">Logout</a>
+                    </nav>
+                </div>
+            </div>
+            
+            <!-- Main Content -->
+            <div class="md:w-3/4">
+                <div class="bg-white rounded-xl border border-gray-200 p-6">
+                    {% if orders %}
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full">
+                            <thead>
+                                <tr class="border-b border-gray-200">
+                                    <th class="py-3 text-left text-gray-700">Order Number</th>
+                                    <th class="py-3 text-left text-gray-700">Date</th>
+                                    <th class="py-3 text-left text-gray-700">Status</th>
+                                    <th class="py-3 text-right text-gray-700">Total</th>
+                                    <th class="py-3 text-right text-gray-700">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for order in orders %}
+                                <tr class="border-b border-gray-200">
+                                    <td class="py-3 text-gray-800">{{ order.order_number }}</td>
+                                    <td class="py-3 text-gray-800">{{ order.created_at|date:"M d, Y" }}</td>
+                                    <td class="py-3">
+                                        <span class="px-2 py-1 text-xs rounded-full 
+                                            {% if order.status == 'delivered' %}bg-green-100 text-green-800
+                                            {% elif order.status == 'cancelled' %}bg-red-100 text-red-800
+                                            {% elif order.status == 'shipped' %}bg-blue-100 text-blue-800
+                                            {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                            {{ order.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td class="py-3 text-right text-gray-800">৳{{ order.total_price }}</td>
+                                    <td class="py-3 text-right">
+                                        <div class="flex justify-end space-x-2">
+                                            <a href="{% url 'order_detail' order.id %}" class="text-gray-900 hover:underline">View</a>
+                                            <a href="{% url 'order_tracking' order.order_number %}" class="text-gray-900 hover:underline">Track</a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-8">
+                        <div class="mb-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-300 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                            </svg>
+                        </div>
+                        <h2 class="text-xl font-semibold text-gray-900">No Orders Yet</h2>
+                        <p class="text-gray-600 mt-2">You haven't placed any orders yet.</p>
+                        <div class="mt-6">
+                            <a href="{% url 'store' %}" class="inline-block py-2 px-4 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors">
+                                Start Shopping
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<div class="container mx-auto px-4 pb-6">
+  <h2 class="text-2xl font-bold text-gray-900 mb-6">Store</h2>
+  <div class="flex flex-col lg:flex-row gap-8">
+    <!-- Main Content -->
+    <div class="lg:w-full">
+      
+      
+      <!-- Search Results Info (only show when searching) -->
+      {% if search_query %}
+      <div class="bg-blue-50 text-blue-800 p-4 rounded-lg mb-6">
+        <div class="flex items-center">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>
+          <span>Search results for "<strong>{{ search_query }}</strong>"</span>
+        </div>
+      </div>
+      {% endif %}
+      
+      <!-- Product Grid -->
+      <div id="product-grid">
+        {% include 'store/product_grid.html' %}
+      </div>
+    </div>
+  </div>
+</div>
+
+
+{% endblock content %}

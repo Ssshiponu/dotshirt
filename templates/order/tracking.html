@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Track Order | Dotshirt{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-3xl mx-auto">
+        <div class="bg-white rounded-xl border border-gray-200 p-6 md:p-8">
+            <h1 class="text-2xl md:text-3xl font-bold mb-6">Track Your Order</h1>
+            
+            <div class="mb-6 pb-6 border-b border-gray-200">
+                <h2 class="text-xl font-bold mb-4">Order Details</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-gray-600 mb-1">Order Number:</p>
+                        <p class="font-medium">{{ order.order_number }}</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-600 mb-1">Date:</p>
+                        <p class="font-medium">{{ order.created_at|date:"F j, Y" }}</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-600 mb-1">Payment Method:</p>
+                        <p class="font-medium">{{ order.payment_method }}</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-600 mb-1">Payment Status:</p>
+                        <p class="font-medium">{% if order.payment_status %}Paid{% else %}Pending{% endif %}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mb-8">
+                <h2 class="text-xl font-bold mb-6">Order Status</h2>
+                
+                <div class="relative">
+                    <!-- Status Timeline -->
+                    <div class="absolute left-5 top-5 bottom-5 w-0.5 bg-gray-200"></div>
+                    
+                    <!-- Status Steps -->
+                    <div class="space-y-8">
+                        {% for status in tracking_updates %}
+                        <div class="relative flex items-start">
+                            <div class="flex items-center justify-center bg-{% if status.status == 'delivered' %}green-500{% elif status.status == 'cancelled' %}red-500{% else %}gray-500{% endif %} rounded-full w-10 h-10 text-white z-10">
+                                {% if status.status == 'pending' %}
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
+                                </svg>
+                                {% elif status.status == 'processing' %}
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M10 1.944A11.954 11.954 0 012.166 5C2.056 5.649 2 6.319 2 7c0 5.225 3.34 9.67 8 11.317C14.66 16.67 18 12.225 18 7c0-.682-.057-1.35-.166-2.001A11.954 11.954 0 0110 1.944zM11 14a1 1 0 11-2 0 1 1 0 012 0zm0-7a1 1 0 10-2 0v3a1 1 0 102 0V7z" clip-rule="evenodd" />
+                                </svg>
+                                {% elif status.status == 'shipped' %}
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
+                                    <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707l-2-2A1 1 0 0015 7h-1z" />
+                                </svg>
+                                {% elif status.status == 'delivered' %}
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                </svg>
+                                {% elif status.status == 'cancelled' %}
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                </svg>
+                                {% endif %}
+                            </div>
+                            <div class="ml-6">
+                                <h3 class="text-lg font-semibold capitalize">{{ status.status }}</h3>
+                                <p class="text-gray-600 text-sm">{{ status.timestamp|date:"F j, Y, g:i a" }}</p>
+                                <p class="mt-2">{{ status.description }}</p>
+                                {% if status.location %}
+                                <p class="text-gray-600 mt-1">Location: {{ status.location }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mb-8">
+                <h2 class="text-xl font-bold mb-4">Order Summary</h2>
+                
+                {% for item in order.items.all %}
+                <div class="flex items-center py-3 {% if not forloop.last %}border-b border-gray-200{% endif %}">
+                    <img src="{{ item.product.images.first.image.url }}" alt="{{ item.product.name }}" class="w-16 h-16 object-cover rounded-md">
+                    <div class="ml-3 flex-grow">
+                        <h3 class="text-gray-800 font-medium">{{ item.product.name }}</h3>
+                        <div class="text-gray-500 text-sm">
+                            <p>Qty: {{ item.quantity }}</p>
+                            {% if item.size %}<p>Size: {{ item.size }}</p>{% endif %}
+                            {% if item.color %}<p>Color: {{ item.color }}</p>{% endif %}
+                        </div>
+                    </div>
+                    <div class="font-medium">
+                        ৳{{ item.get_total }}
+                    </div>
+                </div>
+                {% endfor %}
+                
+                <div class="mt-4 pt-4 border-t border-gray-200">
+                    <div class="flex justify-between font-bold text-lg">
+                        <span>Total</span>
+                        <span class="text-green-600">৳{{ order.total_price }}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex space-x-4">
+                <a href="{% url 'store' %}" class="py-3 px-6 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors duration-300">
+                    Continue Shopping
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
