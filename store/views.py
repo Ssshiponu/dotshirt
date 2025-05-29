@@ -1,30 +1,17 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponse, JsonResponse
 from django.db.models import Q, Min, Max
-from .models import Product, Category, Cart, CartItem
-
-# Create your views here.
+from django.views.decorators.http import require_GET
+from django.views.decorators.csrf import csrf_exempt
+from django.contrib import messages
+from .models import Product, Category, Cart, CartItem, Size, Color
 
 def store(request):
-    """View for the main store page displaying all products"""
-    products = Product.objects.all()
-    categories = Category.objects.all()
-
-    # Get price range for filter
-    price_range = Product.objects.aggregate(min_price=Min('price'), max_price=Max('price'))
-    
-    context = {
-        'products': products,
-        'categories': categories,
-        'price_range': price_range,
-    }
-    return render(request, 'store/store.html', context)
-
-def filter_products(request):
     """View for filtering products by size, color, category, and price range"""
     products = Product.objects.all()
     
     # Get filter parameters
+    search_query = request.GET.get('search', '')
     category_id = request.GET.get('category')
     size_id = request.GET.get('size')
     color_id = request.GET.get('color')
@@ -32,6 +19,9 @@ def filter_products(request):
     max_price = request.GET.get('max_price')
     
     # Apply filters if they exist
+    if search_query:
+        products = products.filter(Q(name__icontains=search_query) | Q(description__icontains=search_query))
+    
     if category_id and category_id != 'all':
         products = products.filter(category_id=category_id)
         
@@ -44,13 +34,13 @@ def filter_products(request):
     # Filter by price range if provided
     if min_price:
         try:
-            products = products.filter(price__gte=float(min_price))
+            products = products.filter(sale_price__gte=float(min_price))
         except (ValueError, TypeError):
             pass  # Ignore invalid price values
             
     if max_price:
         try:
-            products = products.filter(price__lte=float(max_price))
+            products = products.filter(sale_price__lte=float(max_price))
         except (ValueError, TypeError):
             pass  # Ignore invalid price values
     
@@ -59,11 +49,6 @@ def filter_products(request):
     sizes = Size.objects.all()
     colors = Color.objects.all()
     
-    # If this is an HTMX request, return only the product grid
-    if request.headers.get('HX-Request'):
-        return render(request, 'store/product_grid.html', {'products': products})
-    
-    # For a regular request, return the complete page with filter options
     context = {
         'products': products,
         'categories': categories,
@@ -81,49 +66,11 @@ def filter_products(request):
 def product_detail(request, id):
     """View for displaying a single product's details"""
     product = get_object_or_404(Product, id=id)
-    
+
     context = {
         'product': product,
     }
     return render(request, 'store/product_detail.html', context)
-
-def category(request, id):
-    """View for displaying products by category"""
-    category = get_object_or_404(Category, id=id)
-    products = Product.objects.filter(category=category)
-    categories = Category.objects.all()
-    
-    context = {
-        'category': category,
-        'products': products,
-        'categories': categories,
-    }
-    return render(request, 'store/store.html', context)
-
-def search(request):
-    """View for searching products"""
-    query = request.GET.get('search', '')
-    
-    if query:
-        # Search in product name and description
-        products = Product.objects.filter(
-            Q(name__icontains=query) | Q(description__icontains=query) | Q(category__name__icontains=query)
-        )
-    else:
-        products = Product.objects.all()
-    
-    # If the request is HTMX, return only the product grid
-    if request.headers.get('HX-Request'):
-        return render(request, 'store/product_grid.html', {'products': products})
-    
-    # Otherwise return the full store page
-    categories = Category.objects.all()
-    context = {
-        'products': products,
-        'categories': categories,
-        'search_query': query,
-    }
-    return render(request, 'store/store.html', context)
 
 def add_to_cart(request, product_id):
     """View for adding a product to the cart"""
@@ -131,6 +78,15 @@ def add_to_cart(request, product_id):
         try:
             product = get_object_or_404(Product, id=product_id)
             quantity = int(request.POST.get('quantity', 1))
+            size = request.POST.get('size')
+            color = request.POST.get('color')
+            
+            # Validate required attributes if the product requires them
+            if product.sizes.exists() and not size:
+                raise ValueError("Please select a size for this product")
+                
+            if product.colors.exists() and not color:
+                raise ValueError("Please select a color for this product")
             
             # Get or create cart based on session or user
             cart = None
@@ -143,30 +99,63 @@ def add_to_cart(request, product_id):
                     session_id = request.session.session_key
                 cart, created = Cart.objects.get_or_create(session_id=session_id)
             
-            # Fix indentation - this should be outside the else block
+            # Check if item already exists in cart
             cart_item, created = CartItem.objects.get_or_create(
                 cart=cart,
                 product=product,
-                defaults={'quantity': 0}
+                size=get_object_or_404(Size, name=size) if size else None,
+                color=get_object_or_404(Color, name=color) if color else None,
+                defaults={'quantity': quantity}
             )
             
-            # Update quantity
-            cart_item.quantity += quantity
-            cart_item.save()
+            if not created:
+                # Update quantity for existing item
+                cart_item.quantity += quantity
+                cart_item.save()
+                message = f'Updated {product.name} quantity in your cart'
+            else:
+                message = f'Added {product.name} to your cart!'
             
-            message = f'Added {product.name} to cart!'
+            # Add details about size and color if they were selected
+            details = []
+            if size:
+                details.append(f"Size: {size}")
+            if color:
+                details.append(f"Color: {color}")
+            if details:
+                message += f" ({', '.join(details)})"
+                
+            # Get total cart items for display
+            cart_count = sum(item.quantity for item in cart.items.all())
+                
             status = 'success'
+        except ValueError as e:
+            message = str(e)
+            status = 'warning'
+            cart_count = None
         except Exception as e:
             message = f'Error adding to cart: {str(e)}'
             status = 'error'
+            cart_count = None
         
         # Return appropriate response
         if request.headers.get('HX-Request'):
-            bg_color = 'green-100' if status == 'success' else 'red-100'
-            text_color = 'green-800' if status == 'success' else 'red-800'
+            if status == 'success':
+                bg_color, text_color, icon = 'green-100', 'green-800', '✓'
+            elif status == 'warning':
+                bg_color, text_color, icon = 'yellow-100', 'yellow-800', '⚠️'
+            else:
+                bg_color, text_color, icon = 'red-100', 'red-800', '✗'
+            
+            response_html = f'''
+            <div class="bg-{bg_color} text-{text_color} p-3 rounded-md mb-4 flex items-center justify-between">
+                <span><span class="font-bold mr-1">{icon}</span> {message}</span>
+            '''  
+            
+            response_html += '</div>'
             
             return HttpResponse(
-                f'<div class="bg-{bg_color} text-{text_color} p-2 rounded mb-4">{message}</div>',
+                response_html,
                 content_type='text/html'
             )
         
@@ -214,13 +203,68 @@ def remove_from_cart(request, item_id):
         if session_id:
             cart, created = Cart.objects.get_or_create(session_id=session_id)
     
-    # Return appropriate response for HTMX
-    if request.headers.get('HX-Request'):
+    # Check if this is an AJAX request from Alpine.js or an HTMX request
+    is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+    is_htmx = request.headers.get('HX-Request')
+    
+    if is_ajax:
+        # For Alpine.js AJAX requests, return JSON response
+        return JsonResponse({
+            'success': status == 'success',
+            'message': message,
+            'cart_count': sum(item.quantity for item in cart.items.all()) if cart else 0,
+            'cart_total': cart.get_total_price() if cart else 0
+        })
+    elif is_htmx:
+        # For HTMX requests, return HTML fragment
         return render(request, 'partials/cart_items.html', {'cart': cart})
     
-    # Add a message if not HTMX request
+    # Add a message if not AJAX or HTMX request
     messages.success(request, message) if status == 'success' else messages.error(request, message)
     
     # Redirect back to the referring page
     return redirect(request.META.get('HTTP_REFERER', 'store'))
+
+
+@require_GET
+def cart_data(request):
+    """API endpoint to get cart data in JSON format for Alpine.js"""
+    # Get or create cart based on user or session
+    cart = None
+    if request.user.is_authenticated:
+        cart, created = Cart.objects.get_or_create(user=request.user)
+    else:
+        session_id = request.session.session_key
+        if not session_id:
+            request.session.create()
+            session_id = request.session.session_key
+        cart, created = Cart.objects.get_or_create(session_id=session_id)
+    
+    # Prepare cart data
+    items_data = []
+    for item in cart.items.all():
+        # Get first image URL if available
+        image_url = ''
+        if item.product.images.exists():
+            image_url = item.product.images.first().image.url
+        
+        # Format item details
+        item_data = {
+            'id': item.id,
+            'name': str(item),  # This should include product name and any variant info
+            'quantity': item.quantity,
+            'price': item.product.get_final_price(),
+            'image_url': image_url,
+            'total': item.get_total()
+        }
+        items_data.append(item_data)
+    
+    # Prepare response data
+    data = {
+        'items': items_data,
+        'items_count': sum(item.quantity for item in cart.items.all()),
+        'total_price': cart.get_total_price()
+    }
+    
+    return JsonResponse(data)
 

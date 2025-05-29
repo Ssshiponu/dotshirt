@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from .models import (
-    Product, Category, Image
+    Product, Category, Image, Size, Color
 )
 
 # Register your models here.
@@ -31,6 +31,13 @@ class CategoryAdmin(admin.ModelAdmin):
         return obj.product_set.count()
     product_count.short_description = 'Products'
 
+@admin.register(Size)
+class SizeAdmin(admin.ModelAdmin):
+    list_display = ('name',)
+
+@admin.register(Color)
+class SizeAdmin(admin.ModelAdmin):
+    list_display = ('name', 'code')
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
@@ -39,7 +46,7 @@ class ProductAdmin(admin.ModelAdmin):
     search_fields = ('name', 'description', 'sku')
     prepopulated_fields = {'slug': ('name',)}
     readonly_fields = ('created_at', 'updated_at')
-    filter_horizontal = ('images',)
+    filter_horizontal = ('images', 'sizes', "colors")
     fieldsets = (
         ('Basic Information', {
             'fields': ('name', 'slug', 'sku', 'category', 'short_description', 'description')
@@ -47,7 +54,9 @@ class ProductAdmin(admin.ModelAdmin):
         ('Pricing', {
             'fields': ('price', 'sale_price')
         }),
-        
+        ('Attr', {
+            'fields': ('sizes', 'colors')
+        }),
         ('Media', {
             'fields': ('images',)
         }),

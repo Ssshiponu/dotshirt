@@ -18,16 +18,25 @@
     <!-- Header Actions -->
     <div class='flex space-x-2 md:space-x-3 items-center'>
       <!-- Search Component -->
-      <div class="flex text-gray-800 hidden md:flex">
-          <button class="p-2 rounded-l-lg bg-gray-100 group-hover:bg-gray-200 transition-colors duration-200">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search-icon lucide-search"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>
-          </button>
-          <input type="search" name="search" hx-get="/store/search" hx-target="#product-grid" hx-swap="innerHTML" hx-trigger="keyup[target.value.length > 2] changed delay:500ms" id="search" placeholder="Search products..." class='p-2 rounded-r-lg bg-gray-100 transition-colors duration-200 focus:outline-none focus:ring-1 focus:ring-gray-400 w-full md:w-56'>
-      </div>
+      <form terget="store/" id="search-form" class="flex text-gray-800 hidden md:flex">
+        <input type="search" name="search" id="search" {% if request.GET.search %}value="{{ request.GET.search }}"{% endif %} placeholder="Search products..." class='p-2 rounded-l-lg border border-gray-200 bg-gray-100 transition-colors duration-200 focus:outline-none focus:ring-0 focus:bg-white w-full md:w-56'>
+        <button type="submit" class="p-2 rounded-r-lg bg-gray-100 border border-gray-200 hover:bg-gray-200 transition-colors duration-200">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search-icon lucide-search"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>
+        </button>
+      </form>
+      <script>
+        //if user in the store page than submit else submit redirecting to store page
+        document.querySelector('#search-form').addEventListener('submit', function(e) {
+            if (window.location.pathname !== 'store/') {
+                e.preventDefault();
+                window.location.href = '/store/?search=' + document.getElementById('search').value;
+            }
+        });
+      </script>
       
       <!-- User Account -->
       <div class="relative" x-data="{ open: false }">
-        <button @click="open = !open" @click.away="open = false" class="bg-gray-100 text-gray-800 p-2 rounded-lg hover:bg-gray-200 transition-colors duration-200 flex items-center">
+        <button @click="open = !open" @click.away="open = false" class="bg-gray-100 border border-gray-200 text-gray-800 p-2 rounded-lg hover:bg-gray-200 transition-colors duration-200 flex items-center">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-icon lucide-user"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
           {% if user.is_authenticated %}
           <span class="hidden md:inline-block ml-2 text-sm">{{ user.first_name|default:user.username }}</span>
@@ -90,18 +99,18 @@
       </div>
       
       <!-- Shopping Cart -->
-      <button id="cart-button" class="flex items-center gap-1 bg-gray-100 text-gray-800 p-2 rounded-lg relative hover:bg-gray-200 transition-colors duration-200 group">
+      <button id="cart-button" @click="$dispatch('cart-open')" class="flex items-center border border-gray-200 gap-1 bg-gray-100 text-gray-800 p-2 rounded-lg relative hover:bg-gray-200 transition-colors duration-200 group">
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-shopping-bag-icon lucide-shopping-bag"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
         <div class="absolute -top-1 -right-1 bg-gray-900 text-white text-xs rounded-full p-1 min-w-4 h-4 flex items-center justify-center group-hover:bg-gray-700 transition-colors duration-200">
-          <span id="cart-count">{% if cart %}{{ cart.get_total_quantity }}{% else %}0{% endif %}</span>
+          <span id="cart-count"></span>
         </div>
         <div class="text-sm font-medium text-gray-800">
-          <span id="cart-total">৳{% if cart %}{{ cart.get_total_price }}{% else %}0{% endif %}</span>
+          <span id="cart-total"></span>
         </div>
       </button>
       
       <!-- Mobile Menu Button-->
-      <button class="lg:hidden bg-gray-100 text-gray-800 p-2 rounded-lg hover:bg-gray-200 transition-colors duration-200" id="mobile-menu-button" aria-label="Open mobile menu">
+      <button class="lg:hidden bg-gray-100 text-gray-800 border border-gray-200 p-2 rounded-lg hover:bg-gray-200 transition-colors duration-200" id="mobile-menu-button" aria-label="Open mobile menu">
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-menu"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
       </button>
     </div>
@@ -169,77 +178,86 @@
   </div>
 
   <!-- Cart Sidebar -->
-  <div id="cart-sidebar" class="fixed top-0 right-0 w-80 h-screen bg-white border-l border-gray-200 shadow-lg z-50 transform translate-x-full transition-transform duration-300 flex flex-col">
+  <div id="cart-sidebar" 
+       x-data="cart"
+       class="fixed top-0 right-0 w-80 h-screen bg-white border-l border-gray-200 shadow-lg z-50 transform transition-transform duration-300 flex flex-col"
+       :class="{ 'translate-x-full': !isOpen, 'translate-x-0': isOpen }">
     <div class="flex justify-between items-center p-4 border-b">
       <h2 class="text-xl font-bold">Shopping Cart</h2>
-      <button id="close-cart" class="p-2">
+      <button @click="close" class="p-2">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
       </button>
     </div>
     
-    {% if cart.items.exists %}
-    <!-- Cart Items (scrollable) -->
-    <div class="flex-grow overflow-y-auto p-4" style="max-height: calc(100vh - 200px);">
-      <div id="cart-items" class="space-y-4">
-        {% for item in cart.items.all %}
-        <div class="flex items-start border-b border-gray-100 pb-4">
-          <img src="{{ item.product.images.first.image.url }}" alt="{{ item.product.name }}" class="w-16 h-16 object-cover rounded-md">
-          <div class="ml-3 flex-grow">
-            <div class="flex justify-between">
-              <h3 class="text-sm font-medium text-gray-900 line-clamp-1">{{ item.product.name }}</h3>
-              <a href="{% url 'remove_from_cart' item.id %}" class="text-xs text-red-500 hover:text-red-700" hx-get="{% url 'remove_from_cart' item.id %}" hx-target="#cart-items" hx-swap="outerHTML" hx-trigger="click">
-                Remove
-              </a>
-            </div>
-            <div class="flex justify-between items-center mt-1">
-              <p class="text-gray-500 text-xs">{{ item.quantity }} × ৳{{ item.product.get_final_price }}</p>
-              <p class="text-gray-900 font-medium">৳{{ item.get_total }}</p>
-            </div>
+    <template x-if="items.length > 0">
+      <div>
+        <!-- Cart Items (scrollable) -->
+        <div class="flex-grow overflow-y-auto p-4" style="max-height: calc(100vh - 200px);">
+          <div id="cart-items" class="space-y-4">
+            <template x-for="item in items" :key="item.id">
+              <div class="flex items-start border-b border-gray-100 pb-4">
+                <img :src="item.image_url" :alt="item.name" class="w-16 h-16 object-cover rounded-md">
+                <div class="ml-3 flex-grow">
+                  <div class="flex justify-between">
+                    <h3 class="text-sm font-medium text-gray-900 line-clamp-1" x-text="item.name"></h3>
+                    <a href="#" class="text-xs text-red-500 hover:text-red-700" @click.prevent="removeItem(item.id)">
+                      Remove
+                    </a>
+                  </div>
+                  <div class="flex justify-between items-center mt-1">
+                    <p class="text-gray-500 text-xs">
+                      <span x-text="item.quantity"></span> × ৳<span x-text="item.price"></span>
+                    </p>
+                    <p class="text-gray-900 font-medium">৳<span x-text="item.total"></span></p>
+                  </div>
+                </div>
+              </div>
+            </template>
           </div>
         </div>
-        {% endfor %}
-      </div>
-    </div>
-    
-    <!-- Order Summary & Checkout -->
-    <div class="p-4 border-t border-gray-200 mt-auto">
-      <div class="mb-4 space-y-2">
-        <div class="flex justify-between">
-          <span class="text-gray-600">Subtotal</span>
-          <span class="font-medium">৳{{ cart.get_total_price }}</span>
-        </div>
-        <div class="flex justify-between">
-          <span class="text-gray-600">Shipping</span>
-          <span class="font-medium">Free</span>
-        </div>
-        <div class="flex justify-between text-lg font-bold pt-2 border-t border-gray-100">
-          <span>Total</span>
-          <span class="text-green-600">৳{{ cart.get_total_price }}</span>
-        </div>
-      </div>
-      
-      <div class="space-y-2">
+        
+        <!-- Order Summary & Checkout -->
+        <div class="p-4 border-t border-gray-200 mt-auto">
+          <div class="mb-4 space-y-2">
+            <div class="flex justify-between">
+              <span class="text-gray-600">Subtotal</span>
+              <span class="font-medium">৳<span x-text="totalPrice"></span></span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-600">Shipping</span>
+              <span class="font-medium">Free</span>
+            </div>
+            <div class="flex justify-between text-lg font-bold pt-2 border-t border-gray-100">
+              <span>Total</span>
+              <span class="text-green-600">৳<span x-text="totalPrice"></span></span>
+            </div>
+          </div>
+          
+          <div class="space-y-2">
         <a href="{% url 'checkout' %}" class="block w-full py-3 px-4 bg-gray-900 text-white text-center rounded-lg hover:bg-gray-800 transition-colors duration-300">
-          Proceed to Checkout
-        </a>
-        <a href="/store" class="block w-full py-3 px-4 bg-gray-100 text-gray-800 text-center rounded-lg hover:bg-gray-200 transition-colors duration-300">
-          Continue Shopping
+              Proceed to Checkout
+            </a>
+            <a href="{% url 'store' %}" class="block w-full py-3 px-4 bg-gray-100 text-gray-800 text-center rounded-lg hover:bg-gray-200 transition-colors duration-300">
+              Continue Shopping
+            </a>
+          </div>
+        </div>
+      </div>
+    </template>
+    
+    <template x-if="!items.length">
+      <!-- Empty Cart -->
+      <div class="flex-grow flex flex-col items-center justify-center p-4">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+        </svg>
+        <h3 class="text-lg font-medium text-gray-900 mb-1">Your cart is empty</h3>
+        <p class="text-gray-500 text-center mb-6">Looks like you haven't added any items to your cart yet.</p>
+        <a href="/store/" @click="close" class="py-3 px-6 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors duration-300">
+          Start Shopping
         </a>
       </div>
-    </div>
-    {% else %}
-    <!-- Empty Cart -->
-    <div class="flex-grow flex flex-col items-center justify-center p-4">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-      </svg>
-      <h3 class="text-lg font-medium text-gray-900 mb-1">Your cart is empty</h3>
-      <p class="text-gray-500 text-center mb-6">Looks like you haven't added any items to your cart yet.</p>
-      <a href="/store" class="py-3 px-6 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors duration-300">
-        Start Shopping
-      </a>
-    </div>
-    {% endif %}
+    </template>
   </div>
 
 </header>
@@ -261,36 +279,88 @@
     });
   });
 
-  // Cart toggle functionality
-  document.addEventListener('DOMContentLoaded', function() {
-    const cartButton = document.getElementById('cart-button');
-    const cartCloseButton = document.getElementById("close-cart")
-    const cartSidebar = document.getElementById('cart-sidebar');
-    
-    cartButton.addEventListener('click', function() {
-      cartSidebar.classList.toggle('translate-x-full');
-    });
-
-    cartCloseButton.addEventListener('click', function() {
-      cartSidebar.classList.toggle('translate-x-full');
-    });
-
-    //hide cart sidebar on click outside
-    document.addEventListener('click', function(event) {
-      if (!cartButton.contains(event.target) && !cartSidebar.contains(event.target)) {
-        cartSidebar.classList.add('translate-x-full');
-      }
-    });
-    
-    // Update cart count and total (using Django template variables from context)
-    document.addEventListener('DOMContentLoaded', function() {
-      const cartCount = document.getElementById('cart-count');
-      const cartTotal = document.getElementById('cart-total');
+  // Alpine.js Cart Component
+  document.addEventListener('alpine:init', () => {
+    Alpine.data('cart', () => ({
+      isOpen: false,
+      items: [],
+      totalPrice: 0,
       
-      // These values will be set via Django template context
-      // No need to try accessing undefined 'cart' JavaScript variable
-      // The values are already rendered in the HTML by Django
-    });
+      init() {
+        // Load cart data from the server when component initializes
+        this.fetchCartData();
+        
+        // Add event listener for opening cart
+        const cartButton = document.getElementById('cart-button');
+        if (cartButton) {
+          cartButton.addEventListener('click', () => {
+            this.open();
+          });
+        }
+        
+        // Listen for custom events to update cart
+        window.addEventListener('cart:update', () => {
+          this.fetchCartData();
+        });
+      },
+      
+      fetchCartData() {
+        // Make an AJAX request to get the cart data
+        fetch('{% url "cart_data" %}')
+          .then(response => response.json())
+          .then(data => {
+            this.items = data.items.map(item => ({
+              id: item.id,
+              name: item.name,
+              quantity: item.quantity,
+              price: item.price,
+              image_url: item.image_url,
+              total: item.total
+            }));
+            this.totalPrice = data.total_price;
+            
+            // Update cart count in the button
+            const cartCount = document.getElementById('cart-count');
+            document.getElementById('cart-total').innerHTML = '৳' + this.totalPrice 
+            if (cartCount) {
+              cartCount.textContent = data.items_count;
+            }
+          })
+          .catch(error => {
+            console.error('Error fetching cart data:', error);
+          });
+      },
+      
+      removeItem(itemId) {
+        fetch(`{% url 'remove_from_cart' 0 %}`.replace('0', itemId), {
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+          }
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            this.fetchCartData(); // Refresh cart data
+          }
+        })
+        .catch(error => {
+          console.error('Error removing item from cart:', error);
+        });
+      },
+      
+      open() {
+        this.isOpen = true;
+      },
+      
+      close() {
+        this.isOpen = false;
+      },
+      
+      toggle() {
+        this.isOpen = !this.isOpen;
+      }
+    }));
   });
 </script>
+
 

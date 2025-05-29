@@ -36,6 +36,9 @@ class Category(models.Model):
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = slugify(self.name)
+            for s in self.objects.all():
+                if s.slug == self.slug:
+                    self.slug += "-" + str(uuid.uuid4())[:8]
         super().save(*args, **kwargs)
     
     def get_absolute_url(self):
@@ -58,8 +61,8 @@ class Product(models.Model):
     name = models.CharField(max_length=200)
     slug = models.SlugField(max_length=255, unique=True, null=True, blank=True)
     sku = models.CharField(max_length=50, unique=True, null=True, blank=True, help_text="Stock Keeping Unit")
-    price = models.DecimalField(max_digits=10, decimal_places=2)
-    sale_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    price = models.IntegerField()
+    sale_price = models.IntegerField(null=True, blank=True)
     description = models.TextField()
     short_description = models.TextField(blank=True, help_text="A brief summary of the product")
     images = models.ManyToManyField(Image, related_name='products')
@@ -78,6 +81,10 @@ class Product(models.Model):
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = slugify(self.name)
+            for s in self.objects.all():
+                if s.slug == self.slug:
+                    self.slug += "-" + str(uuid.uuid4())[:8]
+
         if not self.sku:
             # Generate a simple SKU based on product name
             import uuid
@@ -121,10 +128,19 @@ class CartItem(models.Model):
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name='items')
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=1)
+    size = models.ForeignKey(Size, on_delete=models.SET_NULL, null=True, blank=True)
+    color = models.ForeignKey(Color, on_delete=models.SET_NULL, null=True, blank=True)
     added_at = models.DateTimeField(default=timezone.now)
     
     def __str__(self):
-        return f"{self.quantity} x {self.product.name}"
+        return f"{self.quantity} x {self.product.name} {self.size.name if self.size else ''} {self.color.name if self.color else ''}"
     
     def get_total(self):
         return self.product.get_final_price() * self.quantity
+
+    def get_size(self):
+        return self.size.name if self.size else ''
+    
+    def get_color(self):
+        return self.color.name if self.color else ''
+    
