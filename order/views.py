@@ -61,13 +61,22 @@ def place_order(request):
         full_name = request.POST.get('full_name')
         phone = request.POST.get('phone')
         email = request.POST.get('email')
-        address_line1 = request.POST.get('address_line1')
-        address_line2 = request.POST.get('address_line2')
-        city = request.POST.get('city')
-        state = request.POST.get('state')
-        postal_code = request.POST.get('postal_code')
+        district = request.POST.get('district')
+        delivery_charge = request.POST.get('delivery_charge')
+        full_address = request.POST.get('full_address')
         order_note = request.POST.get('order_note')
         save_address = request.POST.get('save_address') == 'on'
+        
+        # Convert delivery charge to decimal
+        try:
+            delivery_charge = int(delivery_charge)
+        except (ValueError, TypeError):
+            delivery_charge = 120 if district != 'Dhaka' else 80
+
+        if not district == 'Dhaka' and delivery_charge == 80:
+            messages.error(request, 'Delivery charge is not valid for this district.')
+            return redirect('checkout')
+        
         
         # Create or use existing address
         address_id = request.POST.get('address_id')
@@ -79,11 +88,7 @@ def place_order(request):
                 full_name=full_name,
                 phone=phone,
                 email=email,
-                address_line1=address_line1,
-                address_line2=address_line2,
-                city=city,
-                state=state,
-                postal_code=postal_code,
+                full_address=f'{full_address}, {district}',
             )
             
             # Save address to user profile if requested
@@ -98,8 +103,8 @@ def place_order(request):
             user=request.user if request.user.is_authenticated else None,
             session_id=None if request.user.is_authenticated else request.session.session_key,
             shipping_address=shipping_address,
-            order_note=order_note,
-            total_price=cart.get_total_price(),
+            delivery_charge=delivery_charge,
+            total_price=cart.get_total_price() + delivery_charge,
             payment_method='Cash on Delivery',
         )
         order.save()
@@ -111,7 +116,6 @@ def place_order(request):
                 product=cart_item.product,
                 quantity=cart_item.quantity,
                 price=cart_item.product.get_final_price(),
-                # You may need to adapt this part depending on how you store size/color selections
                 size=request.POST.get(f'size_{cart_item.id}', ''),
                 color=request.POST.get(f'color_{cart_item.id}', ''),
             )

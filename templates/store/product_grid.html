@@ -2,12 +2,18 @@
     {% for product in products %}
     <div class="bg-white rounded-xl border border-gray-100 overflow-hidden max-w-sm mx-auto transition-all duration-300 group relative">
         <!-- Product Image with Overlay -->
-        <a href="{% url 'product_detail' product.id %}" class="block relative overflow-hidden">
+        <a href="{{ product.get_absolute_url }}" class="block relative overflow-hidden">
+            {% if product.images.first %}
             <img 
                 src="{{ product.images.first.image.url }}" 
                 alt="{{ product.name }}" 
                 class="w-full transition-transform duration-500 group-hover:scale-105"
             >
+            {% else %}
+            <div class="w-full h-64 bg-gray-200 flex items-center justify-center">
+                <span class="text-gray-500">No image available</span>
+            </div>
+            {% endif %}
             
             
             {% if product.category %}
@@ -19,10 +25,18 @@
         
         <!-- Product Info -->
         <div class="p-4">
-            <a href="{% url 'product_detail' product.id %}" class="inline">
-                <h2 class="text-lg font-semibold text-gray-900 truncate hover:text-gray-700 transition-colors">{{ product.name }}</h2>
+            <a href="{{ product.get_absolute_url }}" class="inline">
+                <h2 class="text-lg font-medium text-gray-900 truncate hover:text-gray-700 transition-colors">{{ product.name }}</h2>
             </a>
-            <p class="text-lg font-bold text-green-600">{{ product.price }}৳</p>
+            {% if product.is_on_sale %}
+            <div class="flex items-center gap-2">
+                <p class="text-lg font-medium text-green-600">{{ product.sale_price }}৳</p>
+                <p class="text-sm text-gray-500 line-through">{{ product.price }}৳</p>
+                <span class="text-xs bg-red-100 text-red-800 px-1.5 py-0.5 rounded">-{{ product.get_discount_percentage }}%</span>
+            </div>
+            {% else %}
+            <p class="text-lg font-medium text-green-600">{{ product.price }}৳</p>
+            {% endif %}
             <p class="text-gray-600 mt-2 text-sm line-clamp-2 h-10">{{ product.short_description }}</p>
         </div>
     </div>

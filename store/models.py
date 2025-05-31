@@ -5,6 +5,7 @@ from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils import timezone
 from decimal import Decimal
+import uuid
 
 # Create your models here.
 
@@ -36,9 +37,10 @@ class Category(models.Model):
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = slugify(self.name)
-            for s in self.objects.all():
-                if s.slug == self.slug:
-                    self.slug += "-" + str(uuid.uuid4())[:8]
+            # Check for duplicate slugs
+            if Category.objects.filter(slug=self.slug).exists():
+                import uuid
+                self.slug = f"{self.slug}-{str(uuid.uuid4())[:8]}"
         super().save(*args, **kwargs)
     
     def get_absolute_url(self):
@@ -81,9 +83,10 @@ class Product(models.Model):
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = slugify(self.name)
-            for s in self.objects.all():
-                if s.slug == self.slug:
-                    self.slug += "-" + str(uuid.uuid4())[:8]
+            # Check for duplicate slugs
+            if Product.objects.filter(slug=self.slug).exists():
+                import uuid
+                self.slug = f"{self.slug}-{str(uuid.uuid4())[:8]}"
 
         if not self.sku:
             # Generate a simple SKU based on product name
@@ -93,6 +96,8 @@ class Product(models.Model):
         super().save(*args, **kwargs)
     
     def get_absolute_url(self):
+        if self.slug:
+            return reverse('product_detail_by_slug', args=[self.slug])
         return reverse('product_detail', args=[self.id])
     
     def is_on_sale(self):

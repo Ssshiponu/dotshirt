@@ -7,7 +7,7 @@
         <img src="{% static 'images/hero.jpg' %}" alt="Dotshirt collection" class="h-96 object-cover">
       </div>
       <div class="w-full md:w-1/2 p-8 md:p-12">
-        <h1 class="text-4xl font-bold text-gray-800 mb-4">Dot Shirt</h1>
+        <h1 class="text-4xl font-medium text-gray-800 mb-4">Dot Shirt</h1>
         <p class="text-lg text-gray-600 mb-8">Show your personality with our premium quality t-shirts with unique designs for every style and occasion.</p>
         <a href="/store/" class="inline-flex items-center px-6 py-3 bg-gray-800 text-white font-medium rounded-md hover:bg-gray-700 transition-colors duration-200">
           Shop Collection
@@ -20,7 +20,7 @@
 </section>
 <section class="bg-white">
     <div class="container mx-auto py-6 lg:py-12 px-4 sm:px-6 lg:px-8">
-        <h2 class="text-4xl font-bold text-gray-800 mb-8">Featured T-Shirts</h2>
+        <h2 class="text-4xl font-medium text-gray-800 mb-8">Featured T-Shirts</h2>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
           {% for product in featured_products %}
           <div class="">
@@ -28,11 +28,11 @@
               <img src="{{ product.images.first.image.url }}" alt="{{ product.name }}" class="w-full">
             </a>
             <div class="p-6">
-              <h3 class="text-lg font-semibold text-gray-900 mb-2">
+              <h3 class="text-lg font-medium text-gray-900 mb-2">
                 <a href="{% url 'product_detail' product.id %}">{{ product.name }}</a>
               </h3>
               <p class="text-gray-600 mb-2 line-clamp-2">{{ product.short_description}}</p>
-              <p class="text-green-600 font-bold mb-2">{{ product.price }}৳</p>
+              <p class="text-green-600 font-medium mb-2">{{ product.price }}৳</p>
               
             </div>
           </div>
@@ -43,7 +43,7 @@
 
 <section class="bg-gray-50">
     <div class="container mx-auto py-6 lg:py-12 px-4 sm:px-6 lg:px-8">
-        <h2 class="text-4xl font-bold text-gray-800 mb-8 text-center">Stay Connected</h2>
+        <h2 class="text-4xl font-medium text-gray-800 mb-8 text-center">Stay Connected</h2>
         <div class="flex flex-col items-center justify-center">
             <p class="text-gray-600 mb-4">Follow us on social media</p>
             <div class="flex items-center justify-center fill-gray-800">

@@ -17,8 +17,8 @@ class OrderTrackerInline(admin.TabularInline):
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ('order_number', 'user', 'total_price', 'status', 'payment_method', 'payment_status', 'created_at')
-    list_filter = ('status', 'payment_method', 'payment_status', 'created_at')
+    list_display = ('order_number', 'user', 'total_price', 'status', 'payment_method', 'created_at')
+    list_filter = ('status', 'payment_method', 'created_at')
     search_fields = ('order_number', 'user__username', 'user__email', 'shipping_address__full_name')
     readonly_fields = ('order_number', 'total_price', 'created_at', 'updated_at')
     inlines = [OrderItemInline, OrderTrackerInline]
@@ -27,7 +27,7 @@ class OrderAdmin(admin.ModelAdmin):
             'fields': ('order_number', 'user', 'session_id', 'shipping_address', 'total_price', 'order_note')
         }),
         ('Status', {
-            'fields': ('status', 'payment_method', 'payment_status')
+            'fields': ('status', 'payment_method')
         }),
         ('Dates', {
             'fields': ('created_at', 'updated_at')
@@ -46,22 +46,18 @@ class OrderAdmin(admin.ModelAdmin):
 
 @admin.register(Address)
 class AddressAdmin(admin.ModelAdmin):
-    list_display = ('full_name', 'user', 'city', 'state', 'postal_code', 'is_default')
-    list_filter = ('is_default', 'city', 'state')
-    search_fields = ('full_name', 'user__username', 'address_line1', 'city')
+    list_display = ('full_name', 'user', 'full_address', 'is_default')
+    list_filter = ('is_default',)
+    search_fields = ('full_name', 'user__username', 'full_address')
     
     fieldsets = (
         ('User Information', {
             'fields': ('user', 'full_name', 'phone', 'email')
         }),
         ('Address', {
-            'fields': ('address_line1', 'address_line2', 'city', 'state', 'postal_code')
+            'fields': ('full_address',)
         }),
         ('Settings', {
-            'fields': ('is_default',)
+            'fields': ('is_default', 'created_at')
         }),
     )
-
-# Don't register these models directly as they're used as inlines
-# admin.site.register(OrderItem)
-# admin.site.register(OrderTracker)

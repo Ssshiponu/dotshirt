@@ -62,7 +62,7 @@
                                             {{ order.get_status_display }}
                                         </span>
                                     </td>
-                                    <td class="py-3 text-right text-gray-800">৳{{ order.total_price }}</td>
+                                    <td class="py-3 text-right text-gray-800">৳{{ order.total_price|floatformat:2|default:"0.00" }}</td>
                                     <td class="py-3 text-right">
                                         <div class="flex justify-end space-x-2">
                                             <a href="{% url 'order_detail' order.id %}" class="text-gray-900 hover:underline">View</a>

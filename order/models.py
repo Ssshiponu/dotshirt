@@ -9,16 +9,12 @@ class Address(models.Model):
     full_name = models.CharField(max_length=100)
     phone = models.CharField(max_length=15)
     email = models.EmailField(blank=True, null=True)
-    address_line1 = models.CharField(max_length=255)
-    address_line2 = models.CharField(max_length=255, blank=True, null=True)
-    city = models.CharField(max_length=100)
-    state = models.CharField(max_length=100)
-    postal_code = models.CharField(max_length=20)
+    full_address = models.CharField(max_length=255)
     is_default = models.BooleanField(default=False)
     created_at = models.DateTimeField(default=timezone.now)
     
     def __str__(self):
-        return f"{self.full_name}, {self.address_line1}, {self.city}"
+        return f"{self.full_name}, {self.full_address}"
     
     class Meta:
         verbose_name_plural = "Addresses"
@@ -37,10 +33,10 @@ class Order(models.Model):
     order_number = models.CharField(max_length=20, unique=True)
     shipping_address = models.ForeignKey(Address, on_delete=models.SET_NULL, null=True, related_name='shipping_orders')
     order_note = models.TextField(blank=True, null=True)
+    delivery_charge = models.DecimalField(max_digits=10, decimal_places=2, default=0)  # Added delivery charge
     total_price = models.DecimalField(max_digits=10, decimal_places=2)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     payment_method = models.CharField(max_length=20, default="Cash on Delivery")
-    payment_status = models.BooleanField(default=False)  # True if paid
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(default=timezone.now)
     
@@ -73,7 +69,10 @@ class OrderItem(models.Model):
         return f"{self.quantity} x {self.product.name}"
     
     def get_total(self):
-        return self.price * self.quantity
+        try:
+            return self.price * self.quantity
+        except (TypeError, ValueError):
+            return self.product.get_final_price() * self.quantity
 
 class OrderTracker(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='tracking_updates')

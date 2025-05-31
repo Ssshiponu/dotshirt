@@ -64,8 +64,17 @@ def store(request):
     return render(request, 'store/store.html', context)
 
 def product_detail(request, id):
-    """View for displaying a single product's details"""
+    """View for displaying a single product's details by ID"""
     product = get_object_or_404(Product, id=id)
+
+    context = {
+        'product': product,
+    }
+    return render(request, 'store/product_detail.html', context)
+
+def product_detail_by_slug(request, slug):
+    """View for displaying a single product's details by slug"""
+    product = get_object_or_404(Product, slug=slug)
 
     context = {
         'product': product,
@@ -87,6 +96,13 @@ def add_to_cart(request, product_id):
                 
             if product.colors.exists() and not color:
                 raise ValueError("Please select a color for this product")
+                
+            # Make sure the selected size and color are valid for this product
+            if size and not product.sizes.filter(name=size).exists():
+                raise ValueError(f"Size '{size}' is not available for this product")
+                
+            if color and not product.colors.filter(name=color).exists():
+                raise ValueError(f"Color '{color}' is not available for this product")
             
             # Get or create cart based on session or user
             cart = None
@@ -251,11 +267,14 @@ def cart_data(request):
         # Format item details
         item_data = {
             'id': item.id,
+            'product_id': item.product.id,
+            'product_name': item.product.name,
             'name': str(item),  # This should include product name and any variant info
             'quantity': item.quantity,
             'price': item.product.get_final_price(),
             'image_url': image_url,
-            'total': item.get_total()
+            'total': item.get_total(),
+            'product_url': item.product.get_absolute_url()
         }
         items_data.append(item_data)
     

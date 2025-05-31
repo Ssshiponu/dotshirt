@@ -38,17 +38,16 @@
                     <h3 class="font-bold text-gray-800 mb-3">Shipping Address</h3>
                     <p>{{ order.shipping_address.full_name }}</p>
                     <p>{{ order.shipping_address.phone }}</p>
-                    <p>{{ order.shipping_address.address_line1 }}</p>
-                    {% if order.shipping_address.address_line2 %}
-                    <p>{{ order.shipping_address.address_line2 }}</p>
+                    {% if order.shipping_address.email %}
+                    <p>{{ order.shipping_address.email }}</p>
                     {% endif %}
-                    <p>{{ order.shipping_address.city }}, {{ order.shipping_address.state }} {{ order.shipping_address.postal_code }}</p>
+                    <p>{{ order.shipping_address.full_address }}</p>
                 </div>
                 
                 <div>
                     <h3 class="font-bold text-gray-800 mb-3">Payment Information</h3>
                     <p>Method: {{ order.payment_method }}</p>
-                    <p>Status: {% if order.payment_status %}Paid{% else %}Pending{% endif %}</p>
+                    <p>Status: {{ order.get_status_display }}</p>
                 </div>
             </div>
             
@@ -97,9 +96,9 @@
                             <tr class="border-t border-gray-200">
                                 <td class="py-4" colspan="3"></td>
                                 <td class="py-4 text-right">
-                                    <p class="text-gray-600 mb-1">Subtotal: ৳{{ order.total_price }}</p>
-                                    <p class="text-gray-600 mb-1">Shipping: Free</p>
-                                    <p class="font-bold text-lg">Total: ৳{{ order.total_price }}</p>
+                                    <p class="text-gray-600 mb-1">Subtotal: ৳{{ order.total_price|floatformat:2|default:"0.00" }}</p>
+                                    <p class="text-gray-600 mb-1">Delivery Charge: ৳{{ order.delivery_charge|floatformat:2|default:"0.00" }}</p>
+                                    <p class="font-bold text-lg">Total: ৳{{ order.total_price|floatformat:2|default:"0.00" }}</p>
                                 </td>
                             </tr>
                         </tfoot>
