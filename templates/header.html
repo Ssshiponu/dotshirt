@@ -1,18 +1,18 @@
 
 {% load static %}
-<header class="bg-white text-gray-800 w-full p-3 md:p-4 z-50 border-b border-gray-200 shadow-sm">
+<header class="bg-white sticky top-0 text-gray-800 w-full p-3 md:p-4 z-50 border-b border-gray-200 shadow-sm">
   <div class="container mx-auto flex justify-between">
     <a href="{% url 'home' %}" class='flex items-center'>
       <img src="{% static 'images/logo.png' %}" alt="Logo" class="h-9 md:h-10">
-      <h1 class="text-2xl md:text-3xl ml-2 md:ml-4 font-medium text-gray-900">Dotshirt</h1>
+      <h1 class="text-2xl md:text-3xl ml-2 md:ml-4 font-medium text-gray-900">Dot Shirt</h1>
     </a>
     
     <!-- Desktop Navigation -->
     <nav class="lg:flex items-center space-x-6 hidden">
-      <a href="/" class="hover:text-gray-500 transition-colors duration-200">Home</a>
-      <a href="/store/" class="hover:text-gray-500 transition-colors duration-200">New</a>
-      <a href="/store/" class="hover:text-gray-500 transition-colors duration-200">Best Sale</a>
-      <a href="/store/" class="hover:text-gray-500 transition-colors duration-200">Contact</a>
+      <a href="/" class="hover:text-black hover:underline transition-colors duration-200">Home</a>
+      <a href="/store/" class="hover:text-black hover:underline transition-colors duration-200">New</a>
+      <a href="/store/" class="hover:text-black hover:underline transition-colors duration-200">Best Sale</a>
+      <a href="/store/" class="hover:text-black hover:underline transition-colors duration-200">Contact</a>
     </nav>
     
     <!-- Header Actions -->
@@ -134,7 +134,7 @@
 
   <!-- Mobile Navigation Menu -->
   <div id="mobile-nav"
-   class="fixed top-0 right-0 bg-white border-l border-gray-200 shadow-lg z-40 w-64 h-screen transform translate-x-full transition-transform duration-300 md:hidden">
+   class="fixed top-0 right-0 bg-white border-l border-gray-200 shadow-lg z-40 w-64 h-screen transform translate-x-full transition-transform duration-300 lg:hidden">
     <div class="flex justify-between items-center p-4 border-b">
       <h2 class="text-xl font-medium">Menu</h2>
       <button id="close-mobile-menu" class="p-2">
@@ -219,7 +219,7 @@
     <template x-if="!loading && items.length > 0">
       <div>
         <!-- Cart Items (scrollable) -->
-        <div class="flex-grow overflow-y-auto p-4" style="height: calc(100vh - 312px);">
+        <div class="flex-grow overflow-y-auto p-4" style="height: calc(100vh - 248px);">
           <div id="cart-items" class="space-y-4">
             <template x-for="item in items" :key="item.id">
               <div class="flex items-start border-b border-gray-100 pb-4">
@@ -245,23 +245,15 @@
         
         <!-- Order Summary & Checkout -->
         <div class="p-4 border-t border-gray-200 mt-auto">
-          <div class="mb-4 space-y-2">
-            <div class="flex justify-between">
-              <span class="text-gray-600">Subtotal</span>
-              <span class="font-medium">৳<span x-text="totalPrice"></span></span>
-            </div>
-            <div class="flex justify-between">
-              <span class="text-gray-600">Shipping</span>
-              <span class="font-medium">Free</span>
-            </div>
-            <div class="flex justify-between text-lg font-medium pt-2 border-t border-gray-100">
+          <div class="mb-6">
+            <div class="flex justify-between text-lg font-medium">
               <span>Total</span>
               <span class="text-green-600">৳<span x-text="totalPrice"></span></span>
             </div>
           </div>
           
           <div class="space-y-2">
-        <a href="{% url 'checkout' %}" class="block w-full py-2 px-3 bg-gray-900 text-white text-center rounded-lg hover:bg-gray-800 transition-colors duration-300">
+            <a href="{% url 'checkout' %}" class="block w-full py-2 px-3 bg-gray-900 text-white text-center rounded-lg hover:bg-gray-800 transition-colors duration-300">
               Proceed to Checkout
             </a>
             <a href="{% url 'store' %}" class="block w-full py-2 px-3 bg-gray-100 border border-gray-200 text-gray-800 text-center rounded-lg hover:bg-gray-200 transition-colors duration-300">
