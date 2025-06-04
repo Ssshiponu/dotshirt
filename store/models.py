@@ -114,6 +114,13 @@ class Product(models.Model):
             return self.sale_price
         return self.price
 
+    def get_primary_image(self):
+        if self.images.exists():
+            for image in self.images.all():
+                if image.is_feature:
+                    return image.image.url
+        return self.images.first().image.url if self.images.exists() else None
+
 class Cart(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     session_id = models.CharField(max_length=255, null=True, blank=True, help_text="For anonymous users")
@@ -121,7 +128,7 @@ class Cart(models.Model):
     updated_at = models.DateTimeField(default=timezone.now)
     
     def __str__(self):
-        return f"Cart {self.id} - {'User: ' + self.user.username if self.user else 'Anonymous'}"
+        return f"Cart {self.id} - {'User: ' + self.user.email if self.user else 'Anonymous'}"
     
     def get_total_quantity(self):
         return sum(item.quantity for item in self.items.all())

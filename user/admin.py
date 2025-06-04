@@ -6,22 +6,20 @@ from .models import Profile
 class ProfileInline(admin.StackedInline):
     model = Profile
     can_delete = False
-    verbose_name_plural = 'Profile'
-    fk_name = 'user'
+    fields = ['phone']
 
 class UserAdmin(BaseUserAdmin):
-    inlines = (ProfileInline,)
-    list_display = ('username', 'email', 'first_name', 'last_name', 'is_staff', 'get_phone')
-    list_select_related = ('profile',)
+    inlines = [ProfileInline]
+    list_display = ['username', 'email', 'first_name', 'last_name', 'phone_number', 'is_staff']
+    list_filter = ['is_staff', 'is_superuser']
+    search_fields = ['username', 'email', 'first_name', 'last_name', 'profile__phone']
     
-    def get_phone(self, instance):
-        return instance.profile.phone
-    get_phone.short_description = 'Phone'
+    def phone_number(self, obj):
+        if hasattr(obj, 'profile') and obj.profile and obj.profile.phone:
+            return obj.profile.phone
+        return ''
     
-    def get_inline_instances(self, request, obj=None):
-        if not obj:
-            return []
-        return super().get_inline_instances(request, obj)
+    phone_number.short_description = 'Phone'
 
 # Re-register UserAdmin
 admin.site.unregister(User)

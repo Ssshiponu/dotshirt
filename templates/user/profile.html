@@ -1,142 +1,119 @@
 {% extends 'base.html' %}
-{% load static %}
 
-{% block title %}My Account | Dotshirt{% endblock %}
+{% block title %}My Profile | Dotshirt{% endblock %}
 
 {% block content %}
 <div class="container mx-auto px-4 py-8">
-    <div class="max-w-5xl mx-auto">
-        <h1 class="text-2xl md:text-3xl font-bold mb-6">My Account</h1>
-        
-        {% if messages %}
-        <div class="mb-6">
-            {% for message in messages %}
-            <div class="p-4 {% if message.tags == 'success' %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %} rounded-lg">
-                {{ message }}
-            </div>
-            {% endfor %}
+    <h1 class="text-2xl font-medium text-gray-900 mb-6">My Account</h1>
+    
+    {% if messages %}
+    <div class="mb-4">
+        {% for message in messages %}
+        <div class="p-3 {% if message.tags == 'error' %}bg-red-100 text-red-800{% else %}bg-green-100 text-green-800{% endif %} rounded-md">
+            {{ message }}
         </div>
-        {% endif %}
-        
-        <div class="flex flex-col md:flex-row gap-6">
-            <!-- Sidebar -->
-            <div class="md:w-1/4">
-                <div class="bg-white rounded-xl border border-gray-200 p-6">
-                    <div class="text-center mb-6">
-                        {% if profile.profile_image %}
-                        <img src="{{ profile.profile_image.url }}" alt="{{ user.username }}" class="w-24 h-24 rounded-full mx-auto object-cover border-2 border-gray-200">
-                        {% else %}
-                        <div class="w-24 h-24 rounded-full mx-auto bg-gray-200 flex items-center justify-center">
-                            <span class="text-2xl text-gray-500">{{ user.first_name|first }}{{ user.last_name|first }}</span>
-                        </div>
-                        {% endif %}
-                        <h2 class="text-xl font-bold mt-3">{{ user.first_name }} {{ user.last_name }}</h2>
-                        <p class="text-gray-600">{{ user.email }}</p>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <div class="flex flex-col lg:flex-row lg:gap-6">
+        <!-- Sidebar -->
+
+        <div class="lg:w-1/4">
+            <div class="bg-white p-4 rounded-lg border border-gray-200 mb-4">
+                {% if user.is_authenticated %}
+                    <h2 class="text-xl font-medium mb-2">{{ user.username }}</h2>
+                    <p class="text-gray-600">{{ user.email }}</p>
+                    <p class="text-gray-600">{{ user.phone }}</p>
+                    <div class="mt-4">
+                        <a href="{% url 'logout' %}" class="text-red-600 hover:underline">Logout</a>
                     </div>
-                    
-                    <nav class="space-y-2">
-                        <a href="{% url 'profile' %}" class="block w-full py-2 px-3 bg-gray-100 text-gray-900 rounded-lg">Account Dashboard</a>
-                        <a href="{% url 'edit_profile' %}" class="block w-full py-2 px-3 hover:bg-gray-100 text-gray-800 rounded-lg transition-colors">Edit Profile</a>
-                        <a href="{% url 'address_book' %}" class="block w-full py-2 px-3 hover:bg-gray-100 text-gray-800 rounded-lg transition-colors">Address Book</a>
-                        <a href="{% url 'order_history' %}" class="block w-full py-2 px-3 hover:bg-gray-100 text-gray-800 rounded-lg transition-colors">Order History</a>
-                        <a href="{% url 'change_password' %}" class="block w-full py-2 px-3 hover:bg-gray-100 text-gray-800 rounded-lg transition-colors">Change Password</a>
-                        <a href="{% url 'logout' %}" class="block w-full py-2 px-3 hover:bg-gray-100 text-gray-800 rounded-lg transition-colors">Logout</a>
-                    </nav>
-                </div>
-            </div>
-            
-            <!-- Main Content -->
-            <div class="md:w-3/4">
-                <div class="bg-white rounded-xl border border-gray-200 p-6 mb-6">
-                    <h2 class="text-xl font-bold mb-4">Account Information</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <h3 class="font-medium text-gray-700">Name</h3>
-                            <p>{{ user.first_name }} {{ user.last_name }}</p>
-                        </div>
-                        <div>
-                            <h3 class="font-medium text-gray-700">Email</h3>
-                            <p>{{ user.email }}</p>
-                        </div>
-                        <div>
-                            <h3 class="font-medium text-gray-700">Phone</h3>
-                            <p>{{ profile.phone|default:"Not provided" }}</p>
-                        </div>
-                        <div>
-                            <h3 class="font-medium text-gray-700">Member Since</h3>
-                            <p>{{ user.date_joined|date:"F j, Y" }}</p>
-                        </div>
-                    </div>
-                </div>
-                
-                {% if recent_orders %}
-                <div class="bg-white rounded-xl border border-gray-200 p-6 mb-6">
-                    <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-xl font-bold">Recent Orders</h2>
-                        <a href="{% url 'order_history' %}" class="text-gray-900 hover:underline font-medium">View All</a>
-                    </div>
-                    
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full">
-                            <thead>
-                                <tr class="border-b border-gray-200">
-                                    <th class="py-3 text-left text-gray-700">Order</th>
-                                    <th class="py-3 text-left text-gray-700">Date</th>
-                                    <th class="py-3 text-left text-gray-700">Status</th>
-                                    <th class="py-3 text-right text-gray-700">Total</th>
-                                    <th class="py-3 text-right text-gray-700">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for order in recent_orders %}
-                                <tr class="border-b border-gray-200">
-                                    <td class="py-3 text-gray-800">{{ order.order_number }}</td>
-                                    <td class="py-3 text-gray-800">{{ order.created_at|date:"M d, Y" }}</td>
-                                    <td class="py-3">
-                                        <span class="px-2 py-1 text-xs rounded-full 
-                                            {% if order.status == 'delivered' %}bg-green-100 text-green-800
-                                            {% elif order.status == 'cancelled' %}bg-red-100 text-red-800
-                                            {% elif order.status == 'shipped' %}bg-blue-100 text-blue-800
-                                            {% else %}bg-gray-100 text-gray-800{% endif %}">
-                                            {{ order.get_status_display }}
-                                        </span>
-                                    </td>
-                                    <td class="py-3 text-right text-gray-800">৳{{ order.total_price }}</td>
-                                    <td class="py-3 text-right">
-                                        <a href="{% url 'order_detail' order.id %}" class="text-gray-900 hover:underline">View</a>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
+                {% else %}
+                <p class="text-gray-500">You are not logged in.</p>
+                <div class="mt-4">
+                    <a href="{% url 'login' %}" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gray-900 hover:bg-gray-800">
+                        Login
+                    </a>
+                    <a href="{% url 'register' %}" class="inline-flex items-center px-4 py-2 border border-gray-200 rounded-md shadow-sm text-sm font-medium text-gray-900 bg-white hover:bg-gray-50 ml-2">
+                        Register
+                    </a>
                 </div>
                 {% endif %}
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="lg:w-3/4">
+            <!-- Orders Section -->
+            <div id="orders" class="bg-white p-6 rounded-lg border border-gray-200 mb-4">
+                <h2 class="text-xl font-medium mb-4">My Orders</h2>
+                
+                {% if orders %}
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order #</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for order in orders %}
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ order.order_number }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ order.created_at|date:"M d, Y" }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                        {% if order.status == 'pending' %}bg-yellow-100 text-yellow-800
+                                        {% elif order.status == 'processing' %}bg-blue-100 text-blue-800
+                                        {% elif order.status == 'shipped' %}bg-indigo-100 text-indigo-800
+                                        {% elif order.status == 'delivered' %}bg-green-100 text-green-800
+                                        {% elif order.status == 'cancelled' %}bg-red-100 text-red-800
+                                        {% endif %}">
+                                        {{ order.status|title }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">৳{{ order.total_price }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                    <a href="{% url 'order_detail' order.id %}" class="text-gray-900 hover:underline">View</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-gray-500">You haven't placed any orders yet.</p>
+                <div class="mt-4">
+                    <a href="{% url 'store' %}" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gray-900 hover:bg-gray-800">
+                        Start Shopping
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Addresses Section -->
+            <div id="addresses" class="bg-white p-6 rounded-lg  border border-gray-200">
+                <h2 class="text-xl font-medium mb-4">My Addresses</h2>
                 
                 {% if addresses %}
-                <div class="bg-white rounded-xl border border-gray-200 p-6">
-                    <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-xl font-bold">Saved Addresses</h2>
-                        <a href="{% url 'address_book' %}" class="text-gray-900 hover:underline font-medium">View All</a>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {% for address in addresses %}
+                    <div class="border border-gray-200 rounded-lg p-4 relative {% if address.is_default %}ring-2 ring-gray-800{% endif %}">
+                        {% if address.is_default %}
+                        <span class="absolute top-2 right-2 px-2 py-1 bg-gray-900 text-white text-xs rounded-full">Default</span>
+                        {% endif %}
+                        <h3 class="font-medium">{{ address.full_name }}</h3>
+                        <p class="text-gray-600 text-sm mt-1">{{ address.phone }}</p>
+                        <p class="text-gray-600 text-sm mt-1">{{ address.full_address }}</p>
                     </div>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {% for address in addresses|slice:":2" %}
-                        <div class="border border-gray-200 rounded-lg p-4">
-                            {% if address.is_default %}
-                            <div class="inline-block px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs font-medium mb-2">Default</div>
-                            {% endif %}
-                            <p class="font-medium">{{ address.full_name }}</p>
-                            <p>{{ address.address_line1 }}</p>
-                            {% if address.address_line2 %}
-                            <p>{{ address.address_line2 }}</p>
-                            {% endif %}
-                            <p>{{ address.city }}, {{ address.state }} {{ address.postal_code }}</p>
-                            <p>{{ address.phone }}</p>
-                        </div>
-                        {% endfor %}
-                    </div>
+                    {% endfor %}
                 </div>
+                {% else %}
+                <p class="text-gray-500">You don't have any saved addresses.</p>
                 {% endif %}
             </div>
         </div>

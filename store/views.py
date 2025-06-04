@@ -63,18 +63,12 @@ def store(request):
     
     return render(request, 'store/store.html', context)
 
-def product_detail(request, id):
-    """View for displaying a single product's details by ID"""
-    product = get_object_or_404(Product, id=id)
-
-    context = {
-        'product': product,
-    }
-    return render(request, 'store/product_detail.html', context)
-
-def product_detail_by_slug(request, slug):
-    """View for displaying a single product's details by slug"""
-    product = get_object_or_404(Product, slug=slug)
+def product_detail(request, id=None, slug=None):
+    """View for displaying a single product's details by ID or slug"""
+    if slug:
+        product = get_object_or_404(Product, slug=slug)
+    else:
+        product = get_object_or_404(Product, id=id)
 
     context = {
         'product': product,

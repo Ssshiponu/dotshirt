@@ -73,6 +73,8 @@ class OrderItem(models.Model):
             return self.price * self.quantity
         except (TypeError, ValueError):
             return self.product.get_final_price() * self.quantity
+            
+    get_total.short_description = 'Total'
 
 class OrderTracker(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='tracking_updates')

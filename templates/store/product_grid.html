@@ -3,19 +3,18 @@
     <div class="bg-white rounded-xl border border-gray-100 overflow-hidden max-w-sm mx-auto transition-all duration-300 group relative">
         <!-- Product Image with Overlay -->
         <a href="{{ product.get_absolute_url }}" class="block relative overflow-hidden">
-            {% if product.images.first %}
-            <img 
-                src="{{ product.images.first.image.url }}" 
-                alt="{{ product.name }}" 
-                class="w-full transition-transform duration-500 group-hover:scale-105"
-            >
+            {% if product.get_primary_image %}
+                <img 
+                    src="{{ product.get_primary_image }}" 
+                    alt="{{ product.name }}" 
+                    class="w-full transition-transform duration-500 group-hover:scale-105"
+                >
             {% else %}
             <div class="w-full h-64 bg-gray-200 flex items-center justify-center">
                 <span class="text-gray-500">No image available</span>
             </div>
             {% endif %}
-            
-            
+
             {% if product.category %}
             <div class="absolute top-2 left-2 bg-gray-900 text-white text-xs font-medium px-2 py-1 rounded">
                 {{ product.category.name }}
@@ -32,7 +31,7 @@
             <div class="flex items-center gap-2">
                 <p class="text-lg font-medium text-green-600">{{ product.sale_price }}৳</p>
                 <p class="text-sm text-gray-500 line-through">{{ product.price }}৳</p>
-                <span class="text-xs bg-red-100 text-red-800 px-1.5 py-0.5 rounded">-{{ product.get_discount_percentage }}%</span>
+                <span class="text-xs text-green-600">-{{ product.get_discount_percentage }}%</span>
             </div>
             {% else %}
             <p class="text-lg font-medium text-green-600">{{ product.price }}৳</p>
